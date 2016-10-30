@@ -1,15 +1,77 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<head>
+    <meta charset="UTF-8">
+    <title>TxDot Research Project</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="icon" href="figures/The_Masked_Rider_logo.png">
+</head>
+
 <body>
+  <center><img style="width: 25%;" src="figures/texas-tech-logo.png"></center>
+  <div align="center"><font style="font-family: Helvetica,Arial,sans-serif;" color="black" size="5">
+    CRCP DESIGN PROGRAM BASED ON MECHANISTIC-EMPIRICAL PRINCIPLES</font></div>
+  <div align="center"><font style="font-family: Helvetica,Arial,sans-serif;" color="black" size="4">
+    Developed under TxDOT Research Project 0-5832</font></div>
+<br>
 
+<div id="container">
+  <div id="left">
+      <b> A. Project Identification</b>
+      <TABLE style="width:230px;margin-left: 20px;">
+        <TR><TD> District</TD> <TD><INPUT TYPE="TEXT" NAME="" value="HOU" size="14"></TD></TR>
+        <TR><TD> County</TD> <TD><INPUT TYPE="TEXT" NAME="" value="Galveston" size="14"></TD></TR>
+        <TR><TD> Highway</TD> <TD><INPUT TYPE="TEXT" NAME="" value="IH-10" size="14"></TD></TR>
+        <TR><TD> CSJ</TD> <TD><INPUT TYPE="TEXT" NAME="" value="253-02-012"
+        size="14"></TD></TR>
+        <TR><TD> Direction </TD> <TD><INPUT TYPE="TEXT" NAME="" value="EB" size="14"></TD></TR>
+        <TR><TD> Station (Begin) </TD> <TD><INPUT TYPE="TEXT" NAME="" value="142+50.00" size="14"></TD></TR>
+        <TR><TD> Station (End) </TD> <TD><INPUT TYPE="TEXT" NAME="" value="352+00.00" size="14"></TD></TR>
+      </TABLE>
 
+      <br>
+      <b> B. Design Parameters </b>
+      <TABLE style="width:275px;margin-left: 20px">
+        <TR><TD> Design Life (year) </TD> <TD><INPUT TYPE="TEXT" id="C18" value="30" size="4"></TD></TR>
+        <TR><TD> Number of Punchouts per Mile </TD> <TD><INPUT TYPE="TEXT" NAME="" value="10" size="4"></TD></TR>
+      </TABLE>
 
+      <br><br>
+       <button style="background-color: #8f8;margin-left: 100px;width:100px;height:26px" onClick="main()"><b>Submit</b></button>
+
+  </div>
+  <div id="right">
+      <b> C. Design Traffic </b>
+      <TABLE style="width:410px;margin-left: 20px">
+        <TR><TD> Total Number of Lanes in One Direction </TD> <TD><INPUT TYPE="TEXT" id="C24" value="2" size="4"></TD></TR>
+        <TR><TD> Total Design Traffic in One Direction (million ESALs) </TD> <TD><INPUT TYPE="TEXT" id="C25" value="100" size="4"></TD></TR>
+      </TABLE>
+
+      <br>
+      <b>  D. Concrete Layer Information </b>
+      <TABLE style="width:290px;margin-left: 20px">
+        <TR><TD>  Thickness of Concrete Layer (in.) </TD> <TD><INPUT TYPE="TEXT" NAME="" value="14" size="4"></TD></TR>
+        <TR><TD> 28-Day Modulus of Rupture (psi) </TD> <TD><INPUT TYPE="TEXT" id="F8" value="570" size="4"></TD></TR>
+      </TABLE>
+      <br>
+      <b>  E. Support Layers Information </b>
+      <TABLE style="width:290px;margin-left: 20px">
+        <TR><TD>  Soil Classification System</TD> <TD><INPUT TYPE="TEXT" NAME="" value="USCS" size="6"></TD></TR>
+        <TR><TD>  Soil Classification of Subgrade </TD> <TD><INPUT TYPE="TEXT" NAME="" value="SW" size="6"></TD></TR>
+        <TR><TD> Base Type </TD> <TD><INPUT TYPE="TEXT" NAME="" value="ASB" size="6"></TD></TR>
+        <TR><TD> Base Thickness (in.) </TD> <TD><INPUT TYPE="TEXT" NAME="" value="6" size="6"></TD></TR>
+        <TR><TD> Modulus of Base Layer (ksi) </TD> <TD><INPUT TYPE="TEXT" NAME="" value="400" size="6"></TD></TR>
+        <TR><TD> Composite K (psi/in.) </TD> <TD><INPUT TYPE="TEXT" id="F19" value="539" size="6"></TD></TR>
+      </TABLE>
+  </div>
+</div>  
+<br><br>
+
+<div id="analysisContainer">  </div> 
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="//d3js.org/d3.v3.min.js"></script>
-<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
-<script src="js/tooltip.js"></script>
-<script src="js/util.js"></script>
 <script src="js/main.js"></script>
 <script>
-
 </script>
 </body>

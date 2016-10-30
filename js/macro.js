@@ -38,7 +38,38 @@ Function calculateAnalysisResult()
     Cells(rowIndex, 12) = Cells(rowIndex, 11).Value
     Cells(rowIndex, 13) = 18.985 / (1 + 5 * Cells(rowIndex, 12).Value ^ -1.1)
 
-    
+    'For Rest of Months
+    For counterYear = 1 To Sheets("Input").Range("C18").Value
+        If counterYear <> 1 Then
+            rowIndexStress = 8
+        End If
+        For counterMonth = 1 To 12
+            If counterYear = 1 And counterMonth = 1 Then
+                'If First Year than Omit Calculation of First Month, Already Done
+            Else
+                'Else Run for All 12 Months of Year
+                rowIndex = rowIndex + 1
+                rowIndexStress = rowIndexStress + 1
+                Cells(rowIndex, 1) = Cells(rowIndex - 1, 1) + 1
+                Cells(rowIndex, 2) = Cells(rowIndex, 1).Value / 12
+                Cells(rowIndex, 3) = Sheets("Input").Range("F8").Value * ((30 * Cells(rowIndex, 1).Value / (4 + 0.85 * 30 * Cells(rowIndex, 1).Value))) ^ 0.5
+                Cells(rowIndex, 4) = 57000 / 7.5 * Cells(rowIndex, 3) / 1000
+                Cells(rowIndex, 5) = Sheets("Stress").Cells(rowIndexStress, 38).Value
+                Cells(rowIndex, 6) = Sheets("Stress").Cells(rowIndexStress, 39).Value * Cells(rowIndex, 4) / 5000
+                Cells(rowIndex, 7) = Cells(rowIndex, 5).Value + Cells(rowIndex, 6).Value
+                Cells(rowIndex, 8) = Cells(rowIndex, 7).Value / Cells(rowIndex, 3).Value
+                Cells(rowIndex, 9) = 11800 * Cells(rowIndex, 8).Value ^ fatigue(Sheets("Input").Range("F19").Value)
+                Cells(rowIndex, 10) = Cells(rowIndex - 1, 10).Value
+                Cells(rowIndex, 11) = Cells(rowIndex, 10).Value / Cells(rowIndex, 9).Value
+                Cells(rowIndex, 12) = Cells(rowIndex - 1, 12).Value + Cells(rowIndex, 11).Value
+                Cells(rowIndex, 13) = 18.985 / (1 + 5 * Cells(rowIndex, 12).Value ^ -1.1)
+                If rowIndexStress = 13 Then
+                    rowIndexStress = 1
+                End If
+            End If
+        Next counterMonth
+    Next counterYear
+
 End Function
 
 Function calculateFinalResult()
@@ -56,6 +87,7 @@ Function calculateFinalResult()
     Application.ScreenUpdating = False
     Worksheets("Final Result").Range("A5:F25") = Worksheets("Input").Range("A5:F25").Value
     Worksheets("Final Result").Range("C30") = Worksheets("Analysis Result").Cells(12 * Worksheets("Input").Range("C18").Value + 1, 13).Value
+    Worksheets("Final Result").Range("C3") = Worksheets("Analysis Result").Cells(12 * Worksheets("Input").Range("C18").Value + 1, 13).Value
     If Worksheets("Final Result").Range("C30") <= Worksheets("Input").Range("C19").Value Then
         Worksheets("Final Result").Range("C30").Interior.Color = RGB(0, 255, 0)
     Else

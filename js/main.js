@@ -6,133 +6,98 @@
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
 
-var width = 1200,
-    size = 60,
-    padding = size/20;
 
-var x = d3.scale.linear()
-    .range([padding , size - padding]);
-var y = d3.scale.linear()
-    .range([size - padding , padding ]);
-var xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom")
-    .ticks(3);
-var yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left")
-    .ticks(3);
-var color = d3.scale.category10();
+function main(){
+  console.log("I am here main()");
+  tableCreate();
+}
 
-//******************************
-var domainByTrait= ["0.0", "1.0"];
-var colorRedBlue = d3.scale.linear()
-    .domain([0, 0.4, 1])
-    .range(["#55f", "white", "red"]);
-var leaderList;
-var traits;    
-var data, dataS;    
+function tableCreate() {
+  d3.tsv("data/stress.csv", function(error, data) {
+    if (error) throw error;
 
 
-//d3.tsv("data/SonarStandardized.csv", function(error, data) {
-d3.tsv("data/BreastStandardized.csv", function(error, data_) {
-  if (error) throw error;
+    var rowIndexStress = 9;
+    var row1 = [];
+    var rows = [];
 
-  data = data_
-  traits = d3.keys(data[0]).filter(function(d) { return d !== ""; });
-  var n = traits.length;
+    row1.push(1);
+    row1.push( row1[0]/ 12 );
+    row1.push( +document.getElementById("F8").value);
+    row1.push( 57000 / 7.5 * row1[2] / 1000 );
+    row1.push( +data[7]["STR (T)"] );
+    row1.push( data[7]["STR (E)"] * row1[3] / 5000 )
+    row1.push( row1[4] + row1[5] )
+    row1.push( row1[6] / row1[2] )
+    row1.push( 11800 * Math.pow(row1[7],fatigue(+document.getElementById("F19").value)) )
+    row1.push( lane(+document.getElementById("C24").value) 
+      * document.getElementById("C25").value * 1000000 / 12 / document.getElementById("C18").value )
+    row1.push( row1[9] / row1[8] )
+    row1.push( row1[10] )
+    row1.push( 18.985 / (1 + 5 * Math.pow(row1[11],-1.1)) )
+    rows.push(row1);    // Add to the array
 
-  var brush = d3.svg.brush()
-    .x(x)
-    .y(y)
-    .on("brushstart", brushstart)
-    .on("brush", brushmove)
-    .on("brushend", brushend);
 
-  var svg = d3.select("body").append("svg")
-    .attr("width", size * n + padding)
-    .attr("height", size * n + padding)
-    .append("g")
-    .attr("transform", "translate(" + padding + "," + padding / 2 + ")");
+  var titles = ["Age (Month)","Age (Year)", "Modulus of Rupture (psi)","Modulus of Elasticity (ksi)"
+    ,"Concrete Stress (T) (psi)"
+    ,"Concrete Stress (E) (psi)"
+    ,"Total Concrete Stress (psi)"
+    ,"Stress to Strength Ratio (psi/psi)"
+    ,"Number of Load Repetitions to Failure"
+    ,"Number of Load Repetitions"
+    ,"Pavement Damage"
+    ,"Cumulative Damage"
+    ,"Number of Punchouts per Mile"]
 
-  svg.append("text")
-    .attr("class", "textNotification")
-    .attr("x", padding)
-    .attr("y", padding)
-    .text("Finished reading data points");
+
+    var html = '<br><b>Analysis Result</b>' 
+    var html = '<table style="width:99%;" border="1">' 
+
+
+
+    // Add the variable labels
+    html+='<tr style="background-color:#999">';   
+    for (var i=0;i<titles.length;i++){
+      html+='<td>';
+      html+= titles[i];
+      html+='</td>';
+    }
+    html+='</tr>';    
    
-    svg.call(tip);       
-
-  // Reading Scagnostics data ***********************************************************
-  d3.tsv("data/BreastOutput2.csv", function(error, data2) {
-    dataS = data2;
-    svg.append("text")
-      .attr("class", "textNotification")
-      .attr("x", padding)
-      .attr("y", padding+14)
-      .text("Finished reading Scagnostics");
-
-
-    leaderList = leaderAlgorithm(traits, disSim);
-    var varList = cross();
-    splom(svg, varList);
-
-    function cross() {
-      var c = [], n = leaderList.length, i, j;
-      for (i = 0; i < n; i++) 
-        for (j = 0; j < n; j++) {
-          var miLeader = leaderList[i].mi;
-          var mjLeader = leaderList[j].mi;
-          c.push({x: traits[miLeader], i: i, y: traits[mjLeader], j: j,
-           mi: miLeader, mj: mjLeader, leaderi: leaderList[i], leaderj: leaderList[j]});
-        }
-      return c;
+    for (var i=0;i<rows.length;i++){
+      html+='<tr>';   
+      for (var j=0;j<rows[i].length;j++){
+        html+='<td>';
+        //html+= data[i]["Average Temperature"];
+        html+= rows[i][j];
+        html+='</td>';
+      }
+      html+='</tr>';       
     }
+    html += '</table>';
 
-    function disSim(mi, mj){
-      if (mi<mj){
-         var k = mj*(mj-1)/2+mi; 
-         return 1-dataS[k]["Monotonic"];
-      }
-      else if (mi>mj){
-        var k = mi*(mi-1)/2+mj; 
-        return 1-dataS[k]["Monotonic"];
-      }
-      else{
-        return 0; // Monotonic==1 if same variable for x and y
-      }
-    }  
-
-    // Implementation of leader algorithm
-    // arr: input variables
-    // sim: similarity funciton
-    function leaderAlgorithm(arr, disSim){
-      var r = 0.5;
-      var leaderList = [];
-      for (var i=0; i< arr.length; i++){
-        var minDis = 10000;
-        var minIndex = -1;
-        // Finding the leader
-        for (var l=0; l< leaderList.length; l++){
-          var dis = disSim(i,leaderList[l].mi);
-          if (dis<minDis){
-            minDis=dis;
-            minIndex = l;
-          }
-        }  
-        // Checking 
-        if (minIndex>=0 && minDis<r){   // If found a leader (with minDis)
-          var oldLeader = leaderList[minIndex];
-          oldLeader.children.push(i);
-        }
-        else{
-          var newLeader = {};
-          newLeader.mi = i;
-          newLeader.children = []; 
-          leaderList.push(newLeader);
-        }  
-      }
-      return leaderList;
-    }
+    $('#analysisContainer').append(html);
   });  
-});
+}
+
+function lane(n) {
+  if (n <= 2)
+    return 1;
+  else if (n >= 4)
+    return 0.6;
+  else 
+    return 0.7;
+}
+
+function fatigue(k) {
+  if (k < 200)
+      return k * 0.0221 - 15.97;
+  else if (k < 300)
+      return k * 0.0164 - 14.83;
+  else if (k < 500)
+      return k * 0.0038 - 11.05;
+  else if (k < 1000)
+      return k * 0.00033 - 9.31;
+  else
+      return k * 0.00071 - 9.69;
+}
