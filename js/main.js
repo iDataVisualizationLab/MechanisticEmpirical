@@ -1,5 +1,5 @@
 /* 2016 
- * Tommy Dang (on the Scagnostics project, as Assistant professor, iDVL@TTU)
+ * Tommy Dang (on the TxDot project, as Assistant professor, iDVL@TTU)
  *
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTY.  IN PARTICULAR, THE AUTHORS MAKE NO REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
@@ -7,39 +7,44 @@
  */
 
 
+
+var margin = {top: 20, right: 80, bottom: 60, left: 120},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var svg = d3.select("#graphContainer").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var colorGreenRed = d3.scale.linear()
+    .domain([0, 25])
+    .range(["#0f0", "#f00"]);
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    var color =  colorGreenRed(d.y);
+    var html = "#Punchouts per Mile: <span style='color:"+color+"; font-weight: bold'>" + parseFloat(d.y).toFixed(2) + "</span><br>";
+    html += "&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Age (months):  <span style='color:white; font-weight: bold'>" + d.x + "</span>";
+
+    return html;
+  })
+svg.call(tip);
+
+var rowIndexStress = 9;
+var row1 = [];
+var rows = [];
+
 function main(){
-  console.log("I am here main()");
-  tableCreate();
-}
-
-
-
-function tableCreate() {
-  // Set readonlye for imputs
-  document.getElementById("F13").readOnly = true;
-  document.getElementById("F14").readOnly = true;
-  document.getElementById("F15").readOnly = true;
-  document.getElementById("F16").readOnly = true;
-  document.getElementById("F17").readOnly = true;
-  document.getElementById("F19").readOnly = true;
-
-  document.getElementById("F7").readOnly = true;
-  document.getElementById("F8").readOnly = true;
-
-  document.getElementById("C18").readOnly = true;
-  document.getElementById("C19").readOnly = true;
-  document.getElementById("C24").readOnly = true;
-  document.getElementById("C25").readOnly = true;
-
- // document.getElementById("submitButton").disabled = true;
-
   d3.tsv("data/stress.csv", function(error, data) {
     if (error) throw error;
 
-
-    var rowIndexStress = 9;
-    var row1 = [];
-    var rows = [];
+    rowIndexStress = 9;
+    row1 = [];
+    rows = [];
 
     row1.push( 1 );
     row1.push( row1[0]/ 12 );
@@ -103,126 +108,92 @@ function tableCreate() {
         }
       }   
     }
+    tableCreate();
+    drawGraph();
+  });   
+}
 
-  // Compute color scale
-  var minArray = [];
-  var maxArray = [];    
-  for (var j=0; j<rows[0].length; j++){
-    minArray.push(1000000000);
-    maxArray.push(0);
-  }  
+function drawGraph(){
+  var dataset =[];
   for (var i=0;i<rows.length;i++){
-    for (var j=0;j<rows[i].length;j++){
-      if (rows[i][j]>maxArray[j])
-        maxArray[j] = rows[i][j];
-      if (rows[i][j]<minArray[j])
-        minArray[j] = rows[i][j];
-    }  
+    var obj={};
+    obj.x = rows[i][0];
+    obj.y = rows[i][12];  
+    dataset.push(obj);  
   }
-  var colorRedBlues = [];
-  for (var j=0; j<rows[0].length; j++){
-    var colorScale = d3.scale.linear()
-      .domain([minArray[j], (minArray[j]+maxArray[j])/2, maxArray[j]])
-      .range(["#55f", "white", "#f55"]);
-    colorRedBlues.push(colorScale);  
-  }       
 
-  var colorGreenRed = d3.scale.linear()
-    .domain([0, 25])
-    .range(["#0f0", "#f00"]);
- 
-  // Final CRCP PERFORMANCE ****************************************************
+var xScale = d3.scale.linear()
+    .domain([0, d3.max(dataset, function(d){ return d.x; })])
+    .range([0, width]);
+
+var yScale = d3.scale.linear()
+    .domain([0, d3.max(dataset, function(d){ return d.y; })])
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(xScale)
+    .orient("bottom")
+    .innerTickSize(-height)
+    .outerTickSize(0)
+    .tickPadding(10);
+
+var yAxis = d3.svg.axis()
+    .scale(yScale)
+    .orient("left")
+    .innerTickSize(-width)
+    .outerTickSize(0)
+    .tickPadding(10);
+
+var line = d3.svg.line()
+    .x(function(d) { return xScale(d.x); })
+    .y(function(d) { return yScale(d.y); });
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
   
-  var html = '<b>CRCP PERFORMANCE</b><br>' ;
-  var r =  12 * document.getElementById("C18").value-1;
-  var color = colorGreenRed(rows[r][12]);
-  html += 'Number of Punchouts per Mile: ' ;      
-  html += '<INPUT TYPE="TEXT" readonly="readonly" style="background-color:'+color
-          +'; text-align: center; font-size: 17; font-weight: bold;" value="'+parseFloat(rows[r][12]).toFixed(2)+'" size="7"><br><br>';
+  // Labelling x-axis
+  svg.append("text")
+    .attr("class", "xAxisText")
+    .style("text-anchor", "middle")
+    .style("text-shadow", "1px 1px 0 rgba(200, 200, 200, 0.7")
+    .attr("font-family", "sans-serif")
+    .attr("font-size", "16px")  
+    .attr("x", width/2)
+    .attr("y", height+40)
+    .text("Age (months)");
+   svg.append("g").attr("transform","translate("+(-50)+","+height/2+")"+" rotate(-90)")
+    .append("text")
+      .attr("class", "YAxisText")
+      .style("text-anchor", "middle")
+      .style("text-shadow", "1px 1px 0 rgba(200, 200, 200, 0.7")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "16px")  
+      .attr("x", 0)
+      .attr("y", 0)
+      .text("Number of Punchouts per Mile");
+        
+        
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
 
-  var titles = ["Age (Month)","Age (Year)", "Modulus of Rupture (psi)","Modulus of Elasticity (ksi)"
-    ,"Concrete Stress (T) (psi)"
-    ,"Concrete Stress (E) (psi)"
-    ,"Total Concrete Stress (psi)"
-    ,"Stress to Strength Ratio (psi/psi)"
-    ,"Number of Load Repetitions to Failure"
-    ,"Number of Load Repetitions"
-    ,"Pavement Damage"
-    ,"Cumulative Damage"
-    ,"Number of Punchouts per Mile"]
+  svg.append("path")
+      .data([dataset])
+      .attr("class", "line")
+      .attr("d", line);    
 
-
-    html += '<b>Analysis Result</b>' ;
-    html += '<table style="width:99%;font-size: 12px;" border="1">'; 
-
-
-
-    // Add the variable labels
-    html+='<tr style="background-color:#888">';   
-    for (var i=0;i<titles.length;i++){
-      html+='<td>';
-      html+= titles[i];
-      html+='</td>';
-    }
-    html+='</tr>';    
-    
-    for (var i=0;i<rows.length;i++){
-      html+='<tr>';   
-      for (var j=0;j<rows[i].length;j++){
-        if (j==12){
-          var color = colorGreenRed(rows[i][j]);
-          html+='<td  style="text-align: right; background-color:'+color
-          +'; padding-right: 10px; padding-top: 0px; padding-bottom: 0px;">';
-        }
-        else {
-          var color = colorRedBlues[j](rows[i][j]);
-          html+='<td  style="text-align: right; background-color:'+color
-          +'; padding-right: 10px; padding-top: 0px; padding-bottom: 0px;">';
-        }
-        //else
-        //  html+='<td  style="text-align: right">';
-        if (j==1 || j==12)
-          html+= parseFloat(rows[i][j]).toFixed(2);
-        else if (j==2 || j==3 || j==8 || j==9)
-          html+= parseFloat(rows[i][j]).toFixed(0);
-        else if (j==5 || j==6)
-          html+= parseFloat(rows[i][j]).toFixed(1);
-        else if (j==7)
-          html+= parseFloat(rows[i][j]).toFixed(3);
-        else if (j==10 || j==11)
-          html+= parseFloat(rows[i][j]).toFixed(4);
-        else  
-          html+= rows[i][j];
-
-
-        html+='</td>';
-      }
-      html+='</tr>';       
-    }
-    html += '</table> <br>';
-
-    $('#analysisContainer').append(html);
-  });  
-}
-
-function lane(n) {
-  if (n <= 2)
-    return 1;
-  else if (n >= 4)
-    return 0.6;
-  else 
-    return 0.7;
-}
-
-function fatigue(k) {
-  if (k < 200)
-      return k * 0.0221 - 15.97;
-  else if (k < 300)
-      return k * 0.0164 - 14.83;
-  else if (k < 500)
-      return k * 0.0038 - 11.05;
-  else if (k < 1000)
-      return k * 0.00033 - 9.31;
-  else
-      return k * 0.00071 - 9.69;
+  svg.selectAll(".point")
+    .data(dataset).enter()
+      .append("circle")
+      .attr("class", "point")
+      .attr("r", 4)
+      .attr("cx", function(d){ return xScale(d.x);})
+      .attr("cy", function(d){ return yScale(d.y);})
+      .attr("fill", function(d){ return colorGreenRed(d.y);})
+      .attr("stroke-width", 0.5) 
+      .attr("stroke","#000")
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide) ;
 }
